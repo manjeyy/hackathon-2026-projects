@@ -10,4 +10,6 @@ class HealthState(TypedDict):
     fitness_data: dict          # {heart_rate, steps, sleep_hours, last_workout}
     retrieved_context: list[str]
     is_serious: bool
+    is_greeting: bool           # True if last message was greeting
+    recommended_specialization: str
     final_response: str

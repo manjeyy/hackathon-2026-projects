@@ -61,18 +61,51 @@ fitness data where relevant. For example:
     )
     response_text = res.choices[0].message.content.strip()
 
-    SERIOUS_KEYWORDS = [
-        "chest pain", "can't breathe", "difficulty breathing",
-        "fainting", "fainted", "unconscious", "severe headache",
-        "numbness", "arm pain", "jaw pain", "heart attack"
+    VALID_SPECIALIZATIONS = [
+        "cardiologist", "neurologist", "pulmonologist",
+        "orthopedist", "gastroenterologist",
+        "endocrinologist", "general physician"
     ]
-    
-    all_text = " ".join([m.get("content", "").lower() for m in state.get("messages", [])])
-    is_serious = any(kw in all_text for kw in SERIOUS_KEYWORDS)
+
+    SERIOUS_KEYWORDS = [
+        "chest pain", "chest hurt", "can't breathe",
+        "cannot breathe", "difficulty breathing",
+        "fainting", "fainted", "unconscious",
+        "severe headache", "numbness", "arm pain",
+        "arm numb", "left arm", "jaw pain",
+        "heart attack", "stroke", "seizure"
+    ]
+
+    # Parse SPECIALIST line from response
+    recommended_specialization = ""
+    clean_response = response_text
+    lines = response_text.strip().split('\n')
+    for line in lines:
+        if line.strip().startswith('SPECIALIST:'):
+            raw = line.replace('SPECIALIST:', '').strip().lower()
+            if raw in VALID_SPECIALIZATIONS:
+                recommended_specialization = raw
+            clean_response = response_text.replace(line, '').strip()
+            break
+
+    # Check is_serious
+    all_user_text = " ".join([
+        m["content"].lower()
+        for m in state.get("messages", [])
+        if m["role"] == "user"
+    ])
+    is_serious = (
+        any(kw in all_user_text for kw in SERIOUS_KEYWORDS)
+        or (
+            bool(recommended_specialization)
+            and recommended_specialization != "general physician"
+        )
+    )
 
     logger.info(f"Synthesized response. is_serious={is_serious}")
 
     return {
-        "final_response": response_text,
-        "is_serious": is_serious
+        "final_response": clean_response,
+        "is_serious": is_serious,
+        "recommended_specialization": recommended_specialization
     }

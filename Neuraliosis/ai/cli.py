@@ -12,10 +12,18 @@ def main():
     print("==================================================")
     
     state: HealthState = {
-        "messages": [], "topic": "general", "confidence": 0.0,
-        "questions_asked": 0, "fitness_approved": False,
-        "fitness_data": {}, "retrieved_context": [],
-        "is_serious": False, "final_response": ""
+        "messages": [],
+        "topic": "general",
+        "keywords": [],
+        "confidence": 0.0,
+        "questions_asked": 0,
+        "fitness_approved": False,
+        "fitness_data": {},
+        "retrieved_context": [],
+        "is_serious": False,
+        "is_greeting": False,
+        "recommended_specialization": "",
+        "final_response": ""
     }
     
     while True:
@@ -46,6 +54,13 @@ def main():
                 response = state["messages"][-1]["content"]
                 
             print(f"\nAssistant: {response}")
+            
+            if state.get("is_serious"):
+                spec = state.get("recommended_specialization", "")
+                if spec:
+                    print(f"\n  ⚠️  Serious concern detected.")
+                    print(f"  👨⚕️  Recommended specialist: {spec.upper()}")
+                    print(f"  📅  Please consider booking an appointment.")
             
             if "A)" in response and "B)" in response:
                 print("  → Type A, B, C or D — or describe in your own words")

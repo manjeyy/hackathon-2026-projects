@@ -10,5 +10,6 @@ dependencies = [
     "fastapi>=0.110.0",
     "uvicorn>=0.30.0",
     "python-dotenv>=1.0.0",
-    "pytest>=8.0.0"
+    "pytest>=8.0.0",
+    "python-multipart>=0.0.9"
 ]

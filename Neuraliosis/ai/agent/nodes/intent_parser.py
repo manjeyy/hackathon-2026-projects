@@ -10,6 +10,22 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", "dummy_key"))
 
+GREETING_PATTERNS = [
+    "hi", "hello", "hey", "hii", "helo",
+    "good morning", "good evening", "good afternoon",
+    "howdy", "sup", "what's up", "whats up",
+    "how are you", "who are you", "what can you do"
+]
+
+def is_greeting_message(text: str, keywords: list[str]) -> bool:
+    cleaned = text.lower().strip()
+    # Check if message is ONLY a greeting
+    # with no symptom keywords
+    is_short = len(cleaned.split()) <= 4
+    is_greeting = any(g in cleaned for g in GREETING_PATTERNS)
+    has_symptom = len(keywords) > 0  # keywords from LLM parse
+    return is_greeting and is_short and not has_symptom
+
 def intent_parser(state: HealthState) -> dict:
     prompt = Path("prompts/intent_parser.txt").read_text()
     last_user_msg = next((m["content"] for m in reversed(state["messages"]) if m["role"] == "user"), "")
@@ -37,4 +53,8 @@ def intent_parser(state: HealthState) -> dict:
         keywords = []
         
     logger.info(f"Detected topic: {topic}, keywords: {keywords}")
-    return {"topic": topic, "keywords": keywords}
+    return {
+        "topic": topic,
+        "keywords": keywords,
+        "is_greeting": is_greeting_message(last_user_msg, keywords)
+    }

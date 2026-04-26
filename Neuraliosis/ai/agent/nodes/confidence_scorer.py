@@ -4,6 +4,14 @@ from agent.state import HealthState
 logger = logging.getLogger(__name__)
 
 def confidence_scorer(state: HealthState) -> dict:
+    # If it is a greeting with no symptoms, skip scoring
+    if state.get("is_greeting", False):
+        return {"confidence": 0.0}
+
+    # If no keywords extracted yet, no point scoring
+    if not state.get("keywords"):
+        return {"confidence": 0.0}
+
     messages_text = " ".join(msg.get("content", "") for msg in state.get("messages", [])).lower()
     keywords_text = " ".join(state.get("keywords", [])).lower()
     full_text = f"{messages_text} {keywords_text}"
